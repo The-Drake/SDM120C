@@ -299,7 +299,7 @@ int getMeasureBCD(modbus_t *ctx, int address, int retries, int nb) {
       rc = modbus_read_input_registers(ctx, address, nb, tab_reg); // will wait response_timeout for a reply
 
       if (rc == -1) {
-        log_message(debug_flag | ( j==retries ? DEBUG_SYSLOG : 0), "%s: ERROR (%d) %s, %d/%d, Address %d [%04X]", errno, modbus_strerror(errno), j, retries, 30000+address+1, address);
+        log_message(debug_flag | ( j==retries ? DEBUG_SYSLOG : 0), "ERROR (%d) %s, %d/%d, Address %d [%04X]", errno, modbus_strerror(errno), j, retries, 30000+address+1, address);
         /* libmodbus already flushes 
         log_message(debug_flag, "Flushed %d bytes", modbus_flush(ctx));
         */
