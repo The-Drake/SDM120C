@@ -2,22 +2,27 @@ CC = gcc
 CFLAGS  = -O2 -Wall -g `pkg-config --cflags libmodbus`
 LDFLAGS = -O2 -Wall -g `pkg-config --libs libmodbus`
 
-SDM = sdm120c
-%.o: %.c
+TARGET = sdm120c
+OFILES = sdm120c.o RS485_lock.o log.o
+
+all:    ${TARGET}
+
+$(TARGET): $(OFILES)
+	$(CC) $(LDFLAGS) -o $@ $(OFILES) 
+	chmod 4711 $(TARGET)
+
+
+%.o: %.c %.h
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-${SDM}: sdm120c.o 
-	$(CC) -o $@ sdm120c.o $(LDFLAGS)
-	chmod 4711 ${SDM}
-
 strip:
-	strip ${SDM}
+	strip ${TARGET}
 
 clean:
-	rm -f *.o ${SDM}
+	rm -f *.o ${TARGET}
 
-install: ${SDM}
-	install -m 4711 $(SDM) /usr/local/bin
+install: ${TARGET}
+	install -m 4711 $(TARGET) /usr/local/bin
 
 uninstall:
-	rm -f /usr/local/bin/$(SDM)
+	rm -f /usr/local/bin/$(TARGET)
