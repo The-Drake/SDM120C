@@ -103,7 +103,7 @@ int trace_flag     = 0;
 
 int metern_flag    = 0;
 
-const char *version     = "1.3.5.3";
+const char *version     = "1.3.5.4";
 char *programName;
 const char *ttyLCKloc   = "/var/lock/LCK.."; /* location and prefix of serial port lock file */
 
@@ -117,6 +117,8 @@ char *PARENTCOMMAND = NULL;
 static int yLockWait = 0;          /* Seconds to wait to lock serial port */
 static time_t command_delay = -1;  // = 30;  /* MilliSeconds to wait before sending a command */
 static time_t settle_time = -1;    // us to wait line to settle before starting chat
+
+unsigned long TotalModbusTime = 0L;
 
 char *devLCKfile = NULL;
 char *devLCKfileNew = NULL;
@@ -607,7 +609,7 @@ float getMeasureFloat(modbus_t *ctx, int address, int retries, int nb) {
         usleep(command_delay);
       }
 
-      log_message(debug_flag, "%d/%d. Register Address %d [%04X]", j, retries, 30000+address+1, address);
+      log_message(debug_flag, "%d/%d. Register Address %d [%04X], bufsize=%d", j, retries, 30000+address+1, address, nb);
       gettimeofday(&tvStart, NULL); 
       rc = modbus_read_input_registers(ctx, address, nb, tab_reg);
       errno_save = errno;
@@ -626,7 +628,9 @@ float getMeasureFloat(modbus_t *ctx, int address, int retries, int nb) {
           usleep(command_delay);
         }
       } else {
-        log_message(debug_flag, "Read time: %ldus", tv_diff(&tvStop, &tvStart));
+        unsigned long tmp = tv_diff(&tvStop, &tvStart);
+        log_message(debug_flag, "Reading OK: %d register(s) in %ldus time", rc, tmp);
+        TotalModbusTime += tmp;
         exit_loop = 1;
       }
 
@@ -1775,6 +1779,8 @@ int main(int argc, char* argv[])
             printf("Display rotation time: %d\n", (int) time_disp);
         }
     }
+
+    log_message(debug_flag, "Total Modbus Time: %ldus", TotalModbusTime);
 
     if (read_count == count_param) {
         // log_message(debug_flag, "Flushed %d bytes", modbus_flush(ctx));
